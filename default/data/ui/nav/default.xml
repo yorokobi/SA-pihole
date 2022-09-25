@@ -1,0 +1,5 @@
+ <nav search_view="search" color="#dd6600">
+   <view name="dnsmasq" default="true" />
+   <view name="search" />
+   <view name="alerts" />
+ </nav>

@@ -1,0 +1,163 @@
+<form version="1.1">
+  <label>dnsmasq</label>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="timepicker" searchWhenChanged="true">
+      <label></label>
+      <default>
+        <earliest>-4h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="span" searchWhenChanged="true">
+      <label>Time Span</label>
+      <choice value="1m">1m</choice>
+      <choice value="1h">1h</choice>
+      <choice value="1d">1d</choice>
+      <default>1h</default>
+      <prefix>span="</prefix>
+      <suffix>"</suffix>
+      <initialValue>1h</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <single>
+        <title>Total Queries</title>
+        <search>
+          <query>eventtype=dnsmasq-dns-query 
+| timechart COUNT $span$</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Queries Blocked</title>
+        <search>
+          <query>eventtype="dnsmasq-dns" action="blocked" | timechart count $span$</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Percent Blocked</title>
+        <search>
+          <query>eventtype=dnsmasq-dns | stats count(eval(eventtype="dnsmasq-dns-response")) AS total, count(eval(response_action="blocked")) AS blocked | eval percent_difference=round(((blocked/total)*100),2)."%" | table percent_difference</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Count By Action</title>
+        <search>
+          <query>eventtype=dnsmasq-dns action=* | eventstats count AS "totalCount" | eventstats count AS "Count" BY action | eval percent=round((Count/totalCount)*100,2) | stats values(Count) AS Count, values(percent) AS Percent BY action 
+| sort -Count 
+| rename action AS Action</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <chart>
+        <title>Chart By Action</title>
+        <search>
+          <query>eventtype="dnsmasq-dns" action=* | timechart count BY action</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Timechart Count By DNS Server</title>
+        <search>
+          <query>eventtype="dnsmasq-dns" | timechart count BY dest_dns usenull=f</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Count By DNS Server</title>
+        <search>
+          <query>eventtype=dnsmasq-dns action="forwarded" | stats count BY dest_ip</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Count By Query Type</title>
+        <search>
+          <query>eventtype="dnsmasq-dns-query" | stats count BY query_type</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Top Domains Queried</title>
+        <search>
+          <query>eventtype="dnsmasq-dns-query" | stats count BY name | sort -count</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Top Blocked Domains</title>
+        <search>
+          <query>eventtype=dnsmasq-dns action="blocked" | stats count BY name | sort -count</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Top Clients</title>
+        <search>
+          <query>eventtype="dnsmasq-dns-query" | stats count BY src | sort -count</query>
+          <earliest>$timepicker.earliest$</earliest>
+          <latest>$timepicker.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+</form>
