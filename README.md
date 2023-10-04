@@ -21,4 +21,4 @@ I have PiHole running on a Raspberry Pi with rsyslog. In my `/etc/rsyslog.conf` 
 *.*                 @192.168.0.19:514
 ```
 
-Change `192.168.0.19` is the IP or hostname of your syslog (SC4S) receiver.
+Change `192.168.0.19` to the IP or hostname of your syslog (SC4S) receiver.
